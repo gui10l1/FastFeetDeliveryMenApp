@@ -2,7 +2,7 @@ import React, { FC, useEffect, useRef } from 'react';
 
 import { Animated } from 'react-native';
 
-import fastFeetLogo from '../../assets/img/fastFeetLogo.png';
+import fastFeetBrand from '../../assets/img/fastFeetBrand.png';
 import { Container } from './styles';
 
 const SplashScreen: FC = () => {
@@ -28,7 +28,7 @@ const SplashScreen: FC = () => {
   return (
     <Container>
       <Animated.Image
-        source={fastFeetLogo}
+        source={fastFeetBrand}
         style={{ transform: [{ scale: initialAnimatedValue }] }}
       />
     </Container>
