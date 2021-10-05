@@ -1,14 +1,15 @@
-import React, { FC } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import React, { FC } from 'react';
 
-import { SplashScreen } from '../pages/SplashScreen';
-import { ClientRoutes } from './client.routes';
 import { useAuth } from '../hooks/useAuth';
+import { SplashScreen } from '../pages/SplashScreen';
+import { AuthRoutes } from './auth.routes';
+import { ClientRoutes } from './client.routes';
 
 const StackNavigator = createStackNavigator();
 
 const Routes: FC = () => {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -20,7 +21,7 @@ const Routes: FC = () => {
     );
   }
 
-  return <ClientRoutes />;
+  return user ? <AuthRoutes /> : <ClientRoutes />;
 };
 
 export { Routes };

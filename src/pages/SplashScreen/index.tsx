@@ -1,5 +1,4 @@
 import React, { FC, useEffect, useRef } from 'react';
-
 import { Animated } from 'react-native';
 
 import fastFeetBrand from '../../assets/img/fastFeetBrand.png';

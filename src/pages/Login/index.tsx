@@ -2,8 +2,10 @@ import React, { FC, useCallback, useRef, useState } from 'react';
 import { Form } from '@unform/mobile';
 import { FormHandles } from '@unform/core';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-
 import { Platform, ScrollView } from 'react-native';
+import { ValidationError } from 'yup';
+
+import { useNavigation } from '@react-navigation/native';
 import {
   Container,
   Header,
@@ -23,27 +25,36 @@ import fastFeetLogo from '../../assets/img/fastFeetLogo.png';
 import { Input } from '../../components/elements/Form/Input';
 import { Button } from '../../components/elements/Button';
 import { useAuth } from '../../hooks/useAuth';
+import { loginFormValidation } from './validations';
+import { getValidationErrors } from '../../utils/getValidationErrors';
 
 const Login: FC = () => {
   const checkboxRef = useRef<BouncyCheckbox>(null);
   const loginFormRef = useRef<FormHandles>(null);
-  const { login, user } = useAuth();
+  const { login } = useAuth();
+  const { navigate } = useNavigation();
 
   const [isChecked, setIsChecked] = useState(false);
 
   const handleLogin = useCallback(
     async data => {
       try {
+        await loginFormValidation(data);
+
         const { cpf, password } = data;
 
-        await login(cpf, password);
+        await login(cpf, password, isChecked);
 
-        console.log(user);
+        navigate('HomeScreen');
       } catch (err) {
-        console.log(err);
+        if (err instanceof ValidationError) {
+          const errors = getValidationErrors(err);
+
+          loginFormRef.current?.setErrors(errors);
+        }
       }
     },
-    [login, user],
+    [login, navigate, isChecked],
   );
 
   const handleCheckboxPress = useCallback(() => {
@@ -52,10 +63,7 @@ const Login: FC = () => {
 
   return (
     <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined} enabled>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flex: 1 }}
-      >
+      <ScrollView keyboardShouldPersistTaps="handled">
         <Header>
           <FastFeetBrand source={fastFeetBrand} />
 

@@ -10,7 +10,7 @@ interface IUser {
 
 interface IUseAuth {
   user: IUser;
-  login(cpf: string, password: string): Promise<void>;
+  login(cpf: string, password: string, rememberMe: boolean): Promise<void>;
   logout(): Promise<void>;
   loading: boolean;
 }

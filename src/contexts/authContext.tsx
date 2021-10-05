@@ -12,7 +12,7 @@ interface IUser {
 }
 
 interface IAuthContext {
-  login(cpf: string, password: string): Promise<void>;
+  login(cpf: string, password: string, rememberMe: boolean): Promise<void>;
   logout(): Promise<void>;
   user: IUser;
   loading: boolean;
@@ -44,6 +44,8 @@ export const AuthContextProvider: FC = ({ children }) => {
           });
 
           setData(parsedStoragedData);
+
+          fastFeetApi.defaults.headers.authorization = `Beaer ${parsedStoragedData.token}`;
         } catch {
           setData({} as IData);
         } finally {
@@ -57,37 +59,48 @@ export const AuthContextProvider: FC = ({ children }) => {
       setLoading(false);
     }
 
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       checkLoggedUser();
     }, 2000);
+
+    return () => {
+      clearInterval(timer);
+    };
   }, []);
 
-  const login = useCallback(async (cpf: string, password: string) => {
-    const { data: dataFromApi } = await fastFeetApi.post<IData>(
-      '/sessions/user',
-      {
-        cpf,
-        password,
-      },
-    );
+  const login = useCallback(
+    async (cpf: string, password: string, rememberMe: boolean) => {
+      const { data: dataFromApi } = await fastFeetApi.post<IData>(
+        '/sessions/user',
+        {
+          cpf,
+          password,
+        },
+      );
 
-    setData(dataFromApi);
+      fastFeetApi.defaults.headers.authorization = `Bearer ${dataFromApi.token}`;
 
-    const dataToBeStoraged = JSON.stringify({
-      token: dataFromApi.token,
-      user: {
-        id: dataFromApi.user.id,
-        name: dataFromApi.user.name,
-        cpf: dataFromApi.user.cpf,
-        email: dataFromApi.user.email,
-      },
-    });
+      setData(dataFromApi);
 
-    await AsyncStorage.mergeItem(
-      '@FastFeetDeliveryMenApp:AuthData',
-      dataToBeStoraged,
-    );
-  }, []);
+      if (rememberMe) {
+        const dataToBeStoraged = JSON.stringify({
+          token: dataFromApi.token,
+          user: {
+            id: dataFromApi.user.id,
+            name: dataFromApi.user.name,
+            cpf: dataFromApi.user.cpf,
+            email: dataFromApi.user.email,
+          },
+        });
+
+        await AsyncStorage.mergeItem(
+          '@FastFeetDeliveryMenApp:AuthData',
+          dataToBeStoraged,
+        );
+      }
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     await AsyncStorage.removeItem('@FastFeetDeliveryMenApp:AuthData');
